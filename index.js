@@ -14,7 +14,7 @@ rtm.on(CLIENT_EVENTS.RTM.AUTHENTICATED, (rtmStartData) => {
 	console.log(rtmStartData.channels);
 	for (const c of rtmStartData.channels) {
 	console.log(c.name);
-    if (c.name === 'general') {
+    if (c.name === 'test-bot') {
 		channel = c.id
 	}
   }
