@@ -26,4 +26,8 @@ rtm.on(CLIENT_EVENTS.RTM.RTM_CONNECTION_OPENED, function () {
 	rtm.sendMessage("Hello!", channel);
 });
 
+rtm.on(RTM_EVENTS.MESSAGE, function handleRtmMessage(message) {
+  console.log('Message:', message); //this is no doubt the lamest possible message handler, but you get the idea
+});
+
 rtm.start();
