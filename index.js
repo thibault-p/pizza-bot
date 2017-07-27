@@ -5,6 +5,7 @@ const RTM_EVENTS = require('@slack/client').RTM_EVENTS;
 const bot_token = process.env.SLACK_BOT_TOKEN || '';
 const rtm = new RtmClient(bot_token);
 const app = express();
+const CHANNELTOUSE = process.env.SLACK_BOT_CHANNEL || 'general'
 
 let channel;
 
@@ -14,17 +15,15 @@ rtm.on(CLIENT_EVENTS.RTM.AUTHENTICATED, (rtmStartData) => {
 	console.log(rtmStartData.channels);
 	for (const c of rtmStartData.channels) {
 	console.log(c.name);
-    if (c.name === 'test-bot') {
+    if (c.name === CHANNELTOUSE) {
 		channel = c.id
 	}
   }
-
 });
 
 // you need to wait for the client to fully connect before you can send messages
 rtm.on(CLIENT_EVENTS.RTM.RTM_CONNECTION_OPENED, function () {
-	console.log('send message to: ', channel);
-	rtm.sendMessage("Hello!", channel);
+	console.log('I\'m ready: ', channel);
 });
 
 rtm.on(RTM_EVENTS.MESSAGE, function handleRtmMessage(message) {
