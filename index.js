@@ -22,7 +22,7 @@ rtm.on(CLIENT_EVENTS.RTM.AUTHENTICATED, (rtmStartData) => {
 
 // you need to wait for the client to fully connect before you can send messages
 rtm.on(CLIENT_EVENTS.RTM.RTM_CONNECTION_OPENED, function () {
-
+	console.log('send message to: ', channel);
 	rtm.sendMessage("Hello!", channel);
 });
 
