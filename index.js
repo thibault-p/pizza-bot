@@ -14,6 +14,19 @@ const slash_token = process.env.SLACK_SLASH_TOKEN || 'test';
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
+
+const menu = [
+	{ name: 'Reine', description: 'jambon, mozza, champignon, olives, pesto, tomates', price: [5, 6, 8]},
+	{ name: 'Larzac', description: '', price: [5, 6, 8]},
+	{ name: 'Forté', description: '', price: [5, 6, 8]},
+	{ name: 'Calzone', description: '', price: [5, 6, 8]},
+	{ name: 'Thon', description: '', price: [5, 6, 8]},
+	{ name: 'Quatre fromages', description: '', price: [5, 6, 8]},
+	{ name: 'Végétarienne', description: '', price: [5, 6, 8]}
+];
+
+
+
 let channel;
 let self;
 
@@ -56,8 +69,12 @@ app.post('/pizza', function (req, res) {
 	let error;
 	if (args.indexOf('help') !== -1) {
 		content = help();
-	} else if (args.indexOf('summary') !== -1){
+	} else if (args.indexOf('list') !== -1) {
+		content = list();
+	} else if (args.indexOf('summary') !== -1) {
 		content = summary();
+	} else if (args.indexOf('add') !== -1) {
+		content = add(args);
 	}
 
 
@@ -84,26 +101,43 @@ function handleMessage(msg) {
 
 function help() {
 	const options = [
-		'*Général',
+		'*Général*',
 		'_list_: Liste les pizzas disponibles',
 		'_summary_: Affiche l\'ensemble de la commande',
-		'Commander',
-		'_add_: Ajoute une commande. `add [medium|large] [type]`',
+		'*Commander*',
+		'_add_: Ajoute une commande. `add [tartine|petite|medium] [pizza_name]`',
 		'_rm_: Annule une commande',
 		'_commit_: Valide la commande'
 	];
 
 	return {
 	    response_type: 'ephemeral',
-	    text: "/pizza (options)",
-	    attachments: [
-	        {
-	            text: options.join('\n')
-	        }
-	    ]
+		title: '/pizza (options)',
+	    text: options.join('\n'),
+		mrkdwn_in: ['text']
 	};
 }
 
 function summary() {
+
+}
+
+function list() {
+	const content = menu.map((e) => {
+		const price = e.price.map((p) => { return `${p}€`; }).join(', ');
+		return `*${e.name}*: (${price}) _${e.description}_`;
+	});
+
+
+	return {
+	    response_type: 'ephemeral',
+		title: 'Menu',
+	    text: content.join('\n'),
+		mrkdwn_in: ['text']
+	};
+}
+
+
+function add(args) {
 
 }
