@@ -35,12 +35,12 @@ rtm.on(RTM_EVENTS.MESSAGE, function handleRtmMessage(message) {
 
 rtm.start();
 
-app.get('/', function (req, res) {
-  res.send('Hi.')
+app.post('/pizza', function (req, res) {
+  	console.log(req);
+	res.send('This is your pizza');
 });
 
 app.listen(process.env.PORT || 5000);
-
 
 
 function handleMessage(msg) {
@@ -52,6 +52,4 @@ function handleMessage(msg) {
 		return;
 	}
 	rtm.sendMessage('Merci de penser à moi', msg.channel);
-
-
 }
