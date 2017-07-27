@@ -1,9 +1,10 @@
-var RtmClient = require('@slack/client').RtmClient;
-var CLIENT_EVENTS = require('@slack/client').CLIENT_EVENTS;
-var RTM_EVENTS = require('@slack/client').RTM_EVENTS;
-var bot_token = process.env.SLACK_BOT_TOKEN || '';
-
-var rtm = new RtmClient(bot_token);
+const express = require('express');
+const RtmClient = require('@slack/client').RtmClient;
+const CLIENT_EVENTS = require('@slack/client').CLIENT_EVENTS;
+const RTM_EVENTS = require('@slack/client').RTM_EVENTS;
+const bot_token = process.env.SLACK_BOT_TOKEN || '';
+const rtm = new RtmClient(bot_token);
+const app = express();
 
 let channel;
 
@@ -31,3 +32,9 @@ rtm.on(RTM_EVENTS.MESSAGE, function handleRtmMessage(message) {
 });
 
 rtm.start();
+
+app.get('/', function (req, res) {
+  res.send('Hi.')
+});
+
+app.listen(process.env.PORT || 5000);
