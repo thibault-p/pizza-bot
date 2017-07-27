@@ -10,6 +10,7 @@ let channel;
 // The client will emit an RTM.AUTHENTICATED event on successful connection, with the `rtm.start` payload
 rtm.on(CLIENT_EVENTS.RTM.AUTHENTICATED, (rtmStartData) => {
 	console.log('Bot connected');
+	console.log(rtmStartData);
 	for (const c of rtmStartData.channels) {
 	console.log(c_name);
     if (c.name === 'general') {
