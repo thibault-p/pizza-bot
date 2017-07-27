@@ -1,4 +1,5 @@
 const express = require('express');
+const bodyParser = require('body-parser')
 const RtmClient = require('@slack/client').RtmClient;
 const CLIENT_EVENTS = require('@slack/client').CLIENT_EVENTS;
 const RTM_EVENTS = require('@slack/client').RTM_EVENTS;
@@ -7,6 +8,10 @@ const bot_token = process.env.SLACK_BOT_TOKEN || '';
 const rtm = new RtmClient(bot_token);
 const app = express();
 const CHANNELTOUSE = process.env.SLACK_BOT_CHANNEL || 'general'
+
+
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
 
 let channel;
 let self;
@@ -33,12 +38,13 @@ rtm.on(RTM_EVENTS.MESSAGE, function handleRtmMessage(message) {
 	handleMessage(message);
 });
 
-rtm.start();
+// rtm.start();
 
 app.post('/pizza', function (req, res) {
-  	console.log(req);
+  	console.log(req.body);
 	res.send('This is your pizza');
 });
+
 
 app.listen(process.env.PORT || 5000);
 
