@@ -47,11 +47,11 @@ function handleMessage(msg) {
 	if (!msg.user) {
 		return;
 	}
-	if (!_.includes(msg.text.match(/<@([A-Z0-9])+>/igm), `<@${this.self.id}>`))
+	if (!_.includes(msg.text.match(/<@([A-Z0-9])+>/igm), `<@${self.id}>`))
 	{
 		return;
 	}
 	rtm.sendMessage('Merci de penser à moi', msg.channel);
-	
+
 
 }
