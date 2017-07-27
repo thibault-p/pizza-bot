@@ -8,7 +8,7 @@ const bot_token = process.env.SLACK_BOT_TOKEN || '';
 const rtm = new RtmClient(bot_token);
 const app = express();
 const CHANNELTOUSE = process.env.SLACK_BOT_CHANNEL || 'general'
-const slash_token = process.env.SLACK_SHASH_TOKEN || 'test';
+const slash_token = process.env.SLACK_SLASH_TOKEN || 'test';
 
 
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -56,6 +56,8 @@ app.post('/pizza', function (req, res) {
 	let error;
 	if (args.indexOf('help') !== -1) {
 		content = help();
+	} else if (args.indexOf('summary') !== -1){
+		content = summary();
 	}
 
 
@@ -88,7 +90,7 @@ function help() {
 		'Commander',
 		'_add_: Ajoute une commande. `add [medium|large] [type]`',
 		'_rm_: Annule une commande',
-		'_commit_: Valide la commande' 
+		'_commit_: Valide la commande'
 	];
 
 	return {
@@ -100,4 +102,8 @@ function help() {
 	        }
 	    ]
 	};
+}
+
+function summary() {
+
 }
