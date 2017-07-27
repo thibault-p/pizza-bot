@@ -8,6 +8,7 @@ const bot_token = process.env.SLACK_BOT_TOKEN || '';
 const rtm = new RtmClient(bot_token);
 const app = express();
 const CHANNELTOUSE = process.env.SLACK_BOT_CHANNEL || 'general'
+const slash_token = process.env.SLACK_SHASH_TOKEN || 'test';
 
 
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -41,8 +42,27 @@ rtm.on(RTM_EVENTS.MESSAGE, function handleRtmMessage(message) {
 // rtm.start();
 
 app.post('/pizza', function (req, res) {
-  	console.log(req.body);
-	res.send('This is your pizza');
+	if (req.body.token !== slash_token)
+	{
+		res.status(403);
+		res.send({ error: 'token not valid' });
+		return;
+	}
+
+
+
+	const args = req.body.text.split(' ');
+	let content;
+	let error;
+	if (args.indexOf('help') !== -1) {
+		content = help();
+	}
+
+
+	if (error) {
+		content = help(error);
+	}
+	res.send(content);
 });
 
 
@@ -58,4 +78,26 @@ function handleMessage(msg) {
 		return;
 	}
 	rtm.sendMessage('Merci de penser à moi', msg.channel);
+}
+
+function help() {
+	const options = [
+		'*Général',
+		'_list_: Liste les pizzas disponibles',
+		'_summary_: Affiche l\'ensemble de la commande',
+		'Commander',
+		'_add_: Ajoute une commande. `add [medium|large] [type]`',
+		'_rm_: Annule une commande',
+		'_commit_: Valide la commande' 
+	];
+
+	return {
+	    response_type: 'ephemeral',
+	    text: "/pizza (options)",
+	    attachments: [
+	        {
+	            text: options.join('\n')
+	        }
+	    ]
+	};
 }
