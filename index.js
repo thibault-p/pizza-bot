@@ -75,7 +75,7 @@ app.post('/pizza', function (req, res) {
 	} else if (args.indexOf('summary') !== -1) {
 		content = summary();
 	} else if (args.indexOf('add') !== -1) {
-		content = add(args);
+		content = add(args, { id: req.user_id, name: req.user_name });
 	}
 
 
