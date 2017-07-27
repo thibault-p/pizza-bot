@@ -12,7 +12,7 @@ rtm.on(CLIENT_EVENTS.RTM.AUTHENTICATED, (rtmStartData) => {
 	console.log('Bot connected');
 	console.log(rtmStartData.channels);
 	for (const c of rtmStartData.channels) {
-	console.log(c_name);
+	console.log(c.name);
     if (c.name === 'general') {
 		channel = c.id
 	}
