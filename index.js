@@ -25,6 +25,7 @@ const menu = [
 	{ name: 'Végétarienne', description: '', price: [5, 6, 8]}
 ];
 
+const size = ['tartine', 'petite', 'medium'];
 
 
 let channel;
@@ -102,21 +103,22 @@ function handleMessage(msg) {
 function help() {
 	const options = [
 		'*Général*',
-		'_list_: Liste les pizzas disponibles',
-		'_summary_: Affiche l\'ensemble de la commande',
+		'\t_list_: Liste les pizzas disponibles',
+		'\t_summary_: Affiche l\'ensemble de la commande',
 		'*Commander*',
-		'_add_: Ajoute une commande. `add [tartine|petite|medium] [pizza_name]`',
-		'_rm_: Annule une commande',
-		'_commit_: Valide la commande'
+		'\t_add_: Ajoute une commande. `add [tartine|petite|medium] [pizza_name]`',
+		'\t_cancel_: Annule une commande',
+		'\t_commit_: Valide la commande groupée'
 	];
 
 	return {
 	    response_type: 'ephemeral',
-		title: '/pizza (options)',
+		title: 'Usage : /pizza (options)',
 	    text: options.join('\n'),
 		mrkdwn_in: ['text']
 	};
 }
+
 
 function summary() {
 
@@ -138,6 +140,50 @@ function list() {
 }
 
 
-function add(args) {
 
+
+function add(args, user) {
+	let o = orders[user.id];
+	if (o) {
+		return {
+		    response_type: 'ephemeral',
+		    text: `Vous avez déjà une commande: ${o.type} (${o.size}) ${o.price}€`
+		};
+	}
+	let size;
+	for (const s of size) {
+		if (args.indexOf(s) !== 1)
+		{
+			size = s;
+			break;
+		}
+	}
+	if (!size) {
+		return {
+			response_type: 'ephemeral',
+			text: `Vous devez spécifier la taille de la pizza`
+		};
+	}
+	let type;
+	for (const e of m) {
+		if (args.indexOf(e.name) !== 1)
+		{
+			type = m;
+			break;
+		}
+	}
+	if (!type) {
+		return {
+			response_type: 'ephemeral',
+			text: `Vous devez spécifier le nom de la pizza`
+		};
+	}
+	orders[user.id] = {
+		user: user,
+		order: type
+	};
+	return {
+		response_type: 'ephemeral',
+		text: `C'est noté !`
+	};
 }
