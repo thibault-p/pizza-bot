@@ -31,7 +31,7 @@ const size = ['tartine', 'petite', 'medium'];
 let channel;
 let self;
 
-let order = {};
+let orders = {};
 
 // The client will emit an RTM.AUTHENTICATED event on successful connection, with the `rtm.start` payload
 rtm.on(CLIENT_EVENTS.RTM.AUTHENTICATED, (rtmStartData) => {
