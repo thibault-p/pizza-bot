@@ -310,6 +310,20 @@ function generateSMS() {
 	return `Bonjour, je souhaite commander pour 12h30 au nom de SIRADEL :\n${content.join('\n')}\nMerci.`
 }
 
+function sendSms(sms, callback) {
+	if (ovh && process.env.PIZZA_NUMBER) {
+		ovh.request('POST', '/sms/{serviceName}/jobs', {
+			serviceName: smsService,
+			message: sms,
+			sender: 'Siradel',
+			receivers: [process.env.PIZZA_NUMBER]
+		}, function (err, result) {
+			console.log(err || result);
+			callback(err);
+		});
+	}
+}
+
 function commit(user) {
 	if (Object.keys(orders) === 0) {
 		return {
@@ -318,7 +332,15 @@ function commit(user) {
 		};
 	}
 	sms = generateSMS();
-	bot.sendMessage(`La commande a été validée par ${user.name}. Je confirme la commande par SMS:\n>>>` + sms);
+	sendSms(sms, function(err) {
+		if (err) {
+			bot.sendMessage('Oups oups oups, je n\'ai pas réussi à envoyer le SMS. :sweat:');
+			return;
+		}
+		bot.sendMessage(`La commande a été validée par ${user.name}. Je confirme la commande par SMS:\n>>>` + sms);
+		orders = {};
+	});
+
 	return {
 		response_type: 'ephemeral',
 		text: `Votre commande a bien été validée. :ok_hand:`
