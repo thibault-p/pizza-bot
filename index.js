@@ -191,7 +191,7 @@ function summary() {
 function list() {
 	const content = menu.map((e) => {
 		const price = e.price.map((p) => { return `${p}€`; }).join(', ');
-		return `(*${e.code}*)*${e.name}*: (${price}) _${e.description}_`;
+		return `(*${e.code}*) *${e.name}* : (${price}) _${e.description}_`;
 	});
 	return {
 	    response_type: 'ephemeral',
