@@ -110,7 +110,7 @@ function handleMessage(msg) {
 	rtm.sendMessage('Merci de penser à moi', msg.channel);
 }
 
-function help(error) {
+function help(err) {
 	const options = [
 		'*Général*',
 		'\t_list_: Liste les pizzas disponibles',
@@ -120,12 +120,23 @@ function help(error) {
 		'\t_cancel_: Annule une commande',
 		'\t_commit_: Valide la commande groupée'
 	];
-
+	const attachments = [
+		{
+			title: '*Usage* : /pizza (options)',
+			text: options.join('\n'),
+			mrkdwn_in: ['title', 'text']
+		}
+	];
+	if (err) {
+		attachments.unshift({
+			color: 'danger',
+			text: `Erreur : ${err}`,
+			mrkdwn_in: ['title', 'text']
+		});
+	}
 	return {
 	    response_type: 'ephemeral',
-		title: '*Usage* : /pizza (options)',
-		pretext: error,
-	    text: options.join('\n'),
+		attachments: attachments,
 		mrkdwn: true
 	};
 }
