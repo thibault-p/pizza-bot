@@ -4,7 +4,7 @@ const Bot = require('./bot');
 const app = express();
 const ovh = require('ovh');
 
-const checkDate = (typeof process.env.CHECK_DATE === 'undefined')? false : process.env.CHECK_DATE;
+const checkDate = (typeof process.env.CHECK_DATE === 'undefined')? false : (process.env.CHECK_DATE==='true');
 const slash_token = process.env.SLACK_SLASH_TOKEN || 'test';
 
 const days = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
@@ -14,7 +14,6 @@ const endTime = new Date(0, 0, 0, 11, 15, 0);
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
-
 
 
 // register callback for SMS if needed
