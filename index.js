@@ -83,7 +83,7 @@ app.post('/pizza', function (req, res) {
 		if (!open) {
 			res.send({
 				response_type: 'ephemeral',
-				text: `:no-good: C'est fermé !\n_Les commandes sont ouvertes le ${days[openDay]} de ${timeToString(startTime)} à ${timeToString(endTime)}._`
+				text: `:no_good: C'est fermé !\n_Les commandes sont ouvertes le ${days[openDay]} de ${timeToString(startTime)} à ${timeToString(endTime)}._`
 			});
 			return;
 		}
