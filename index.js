@@ -33,22 +33,25 @@ if (smsService && process.env.OVH_SMS_NOTIFY) {
 		]
 	}, function (error, credential) {
 		console.log(error || credential);
-		if (!err) {
+		if (!error) {
 			ovh = require('ovh')({
 			  endpoint: 'ovh-eu',
 			  appKey: process.env.OVH_APP_KEY,
 	   	   	  appSecret: process.env.OVH_APP_SECRET,
 			  consumerKey: credential.consumerKey
-			});
+		  }, function(err, credential) {
+			  if (err) return;
+			  ovh.request('PUT', '/sms/{serviceName}', {
+		  		serviceName: smsService,
+		  		cgiUrl: process.env.OVH_SMS_NOTIFY,
+		  		responseType: 'cgi'
+		  	}, function (err, result) {
+		  		console.log(err || result);
+		  	});
+		  });
 		}
 	});
-	ovh.request('PUT', '/sms/{serviceName}', {
-		serviceName: smsService,
-		cgiUrl: process.env.OVH_SMS_NOTIFY,
-		responseType: 'cgi'
-	}, function (err, result) {
-		console.log(err || result);
-	});
+
 }
 
 
