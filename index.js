@@ -1,15 +1,9 @@
 const express = require('express');
 const bodyParser = require('body-parser')
-const RtmClient = require('@slack/client').RtmClient;
-const CLIENT_EVENTS = require('@slack/client').CLIENT_EVENTS;
-const RTM_EVENTS = require('@slack/client').RTM_EVENTS;
-const _ = require('lodash');
-const bot_token = process.env.SLACK_BOT_TOKEN || '';
-const rtm = new RtmClient(bot_token);
+const Bot = require('./bot');
 const app = express();
-const CHANNELTOUSE = process.env.SLACK_BOT_CHANNEL || 'general'
+const checkDate = (process.env.CHECK_DATE === undefined)? true : process.env.CHECK_DATE;
 const slash_token = process.env.SLACK_SLASH_TOKEN || 'test';
-const checkDate = process.env.CHECK_DATE || true;
 
 const days = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
 const openDay = 2; // mardi
@@ -19,15 +13,16 @@ const endTime = new Date(0, 0, 0, 11, 15, 0);
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
+const bot = new Bot();
 
 const menu = [
-	{ name: 'Reine', match: 'reine', description: 'jambon, mozza, champignon, olives, pesto, tomates', price: [5, 6, 8]},
-	{ name: 'Larzac', match: 'larzac', description: '', price: [5, 6, 8]},
-	{ name: 'Forté', match: 'forte', description: '', price: [5, 6, 8]},
-	{ name: 'Calzone', match: 'calzone', description: '', price: [5, 6, 8]},
-	{ name: 'Thon', match: 'thon', description: '', price: [5, 6, 8]},
-	{ name: 'Quatre-fromages', match: 'quatre-fromages', description: '', price: [5, 6, 8]},
-	{ name: 'Végétarienne', match: 'vegetarienne', description: '', price: [5, 6, 8]}
+	{ name: 'Reine', match: 'A1', description: 'jambon, mozza, champignon, olives, pesto, tomates', price: [5, 6, 8]},
+	{ name: 'Larzac', match: 'A2', description: '', price: [5, 6, 8]},
+	{ name: 'Forté', match: 'A3', description: '', price: [5, 6, 8]},
+	{ name: 'Calzone', match: 'A4', description: '', price: [5, 6, 8]},
+	{ name: 'Thon', match: 'A5', description: '', price: [5, 6, 8]},
+	{ name: 'Quatre-fromages', match: 'A6', description: '', price: [5, 6, 8]},
+	{ name: 'Végétarienne', match: 'A7', description: '', price: [5, 6, 8]}
 ];
 
 const sizes = ['tartine', 'petite', 'medium'];
@@ -38,27 +33,6 @@ let self;
 
 let orders = {};
 
-// The client will emit an RTM.AUTHENTICATED event on successful connection, with the `rtm.start` payload
-rtm.on(CLIENT_EVENTS.RTM.AUTHENTICATED, (rtmStartData) => {
-	self = rtmStartData.self;
-	for (const c of rtmStartData.channels) {
-    if (c.name === CHANNELTOUSE) {
-		channel = c.id
-	}
-  }
-});
-
-// you need to wait for the client to fully connect before you can send messages
-rtm.on(CLIENT_EVENTS.RTM.RTM_CONNECTION_OPENED, function () {
-	console.log('I\'m ready: ', channel);
-});
-
-rtm.on(RTM_EVENTS.MESSAGE, function handleRtmMessage(message) {
-	console.log('Message:', message); //this is no doubt the lamest possible message handler, but you get the idea
-	handleMessage(message);
-});
-
-// rtm.start();
 
 function compareTime(d1, d2) {
 	let d = d1.getHours() - d2.getHours();
@@ -75,6 +49,16 @@ function pad(num, size) {
 function timeToString(d) {
 	return `${pad(d.getHours(), 2)}:${pad(d.getMinutes(), 2)}`;
 }
+
+app.post('/pizza/smsResponse', function(req, res) {
+	if (req.body.moMessage) {
+		bot.sendMessage('Je viens de recevoir une réponse à la commande :\n>>>' + req.body.moMessage);
+	}
+	req.status(200);
+	req.send();
+});
+
+
 
 app.post('/pizza', function (req, res) {
 	if (req.body.token !== slash_token)
@@ -97,7 +81,6 @@ app.post('/pizza', function (req, res) {
 			return;
 		}
 	}
-
 
 	const args = req.body.text.toLowerCase().split(' ');
 	let content;
@@ -132,25 +115,13 @@ app.post('/pizza', function (req, res) {
 
 app.listen(process.env.PORT || 5000);
 
-
-function handleMessage(msg) {
-	if (!msg.user) {
-		return;
-	}
-	if (!_.includes(msg.text.match(/<@([A-Z0-9])+>/igm), `<@${self.id}>`))
-	{
-		return;
-	}
-	rtm.sendMessage('Merci de penser à moi', msg.channel);
-}
-
 function help(err) {
 	const options = [
 		'*Général*',
 		'\t_list_ : Liste les pizzas disponibles',
 		'\t_summary_ : Affiche l\'ensemble de la commande',
 		'*Commander*',
-		'\t_order_ : Ajoute une commande. `order [tartine|petite|medium] [pizza_name]`',
+		'\t_order_ : Ajoute une commande. `order [tartine|petite|medium] [pizza_code]`',
 		'\t_cancel_ : Annule une commande',
 		'\t_commit_ : Valide la commande groupée'
 	];
@@ -285,4 +256,16 @@ function cancel(user) {
 		response_type: 'ephemeral',
 		text: `Votre commande a bien été annulée. :confounded:`
 	};
+}
+
+
+function commit() {
+	if (Object.keys(orders) === 0) {
+		return {
+			response_type: 'ephemeral',
+			text: `Pas de commande à envoyer.`
+		};
+	}
+	bot.sendMessage('Je confirme la commande');
+
 }
