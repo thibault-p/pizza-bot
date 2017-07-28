@@ -72,6 +72,7 @@ app.post('/pizza', function (req, res) {
 		id: req.body.user_id,
 		name: req.body.user_name
 	};
+	console.log(user);
 	if (args.indexOf('help') !== -1) {
 		content = help();
 	} else if (args.indexOf('list') !== -1) {
