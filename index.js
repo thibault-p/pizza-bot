@@ -65,9 +65,13 @@ app.post('/pizza', function (req, res) {
 
 
 
-	const args = req.body.text.split(' ');
+	const args = req.body.text.toLowerCase().split(' ');
 	let content;
 	let error;
+	let user = {
+		id: req.user_id,
+		name: req.user_name
+	};
 	if (args.indexOf('help') !== -1) {
 		content = help();
 	} else if (args.indexOf('list') !== -1) {
@@ -75,9 +79,14 @@ app.post('/pizza', function (req, res) {
 	} else if (args.indexOf('summary') !== -1) {
 		content = summary();
 	} else if (args.indexOf('order') !== -1) {
-		content = add(args, { id: req.user_id, name: req.user_name });
+		content = add(args, user);
+	} else if (args.indexOf('cancel') !== -1) {
+		content = cancel(user);
 	}
 
+	if (!content) {
+		content = help('Je n\'ai pas crompris votre demande.');
+	}
 
 	if (error) {
 		content = help(error);
@@ -122,6 +131,22 @@ function help() {
 
 function summary() {
 
+	const content = [];
+	for (o in orders) {
+		if (!orders.hasOwnProperty(o)) {
+			continue;
+		}
+		return {
+			title: o.user.name,
+			text: `*${o.order.name}* (_${o.order.size}_): ${o.order.price}€`
+		};
+	}
+	return {
+	    response_type: 'ephemeral',
+		title: 'Résumé de la commande groupée:',
+	    text: content.join('\n'),
+		mrkdwn_in: ['text']
+	};
 }
 
 function list() {
@@ -139,9 +164,6 @@ function list() {
 	};
 }
 
-
-
-
 function add(args, user) {
 	let o = orders[user.id];
 	if (o) {
@@ -154,11 +176,11 @@ function add(args, user) {
 	for (let s = 0; s < sizes.length; ++s) {
 		if (args.indexOf(sizes[s]) !== 1)
 		{
-			size = sizes[s];
+			size = s;
 			break;
 		}
 	}
-	if (!size) {
+	if (size === undefined) {
 		return {
 			response_type: 'ephemeral',
 			text: `Vous devez spécifier la taille de la pizza`
@@ -166,7 +188,7 @@ function add(args, user) {
 	}
 	let type;
 	for (let e = 0; e < menu.length; ++e) {
-		if (args.indexOf(menu[e].name) !== 1)
+		if (args.indexOf(menu[e].name.toLowerCase()) !== 1)
 		{
 			type = menu[e];
 			break;
@@ -180,7 +202,11 @@ function add(args, user) {
 	}
 	orders[user.id] = {
 		user: user,
-		order: type
+		order: {
+			name: type.name,
+			price: type.price[size],
+			size: sizes[size]
+		}
 	};
 	return {
 		response_type: 'ephemeral',
