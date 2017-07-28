@@ -61,8 +61,8 @@ app.post('/pizza/smsResponse', function(req, res) {
 	if (req.body.moMessage) {
 		bot.sendMessage('Je viens de recevoir une réponse à la commande :\n>>>' + req.body.moMessage);
 	}
-	req.status(200);
-	req.send();
+	res.status(200);
+	res.send();
 });
 
 
