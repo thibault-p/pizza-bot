@@ -123,10 +123,10 @@ function help(error) {
 
 	return {
 	    response_type: 'ephemeral',
-		title: 'Usage : /pizza (options)',
+		title: '*Usage* : /pizza (options)',
 		pretext: error,
 	    text: options.join('\n'),
-		mrkdwn_in: ['text']
+		mrkdwn: true
 	};
 }
 
@@ -144,19 +144,20 @@ function summary() {
 		sum += o.order.price;
 		content.push({
 			title: o.user.name,
-			text: `${o.order.name} (_${o.order.size}_): ${o.order.price}€`
+			text: `${o.order.name} (_${o.order.size}_): ${o.order.price}€`,
+			"mrkdwn_in": ["text"]
 		});
 	}
 	let text = 'Je n\'ai pas encore reçu de commande. :pensive:';
 	const l = Object.keys(orders).length;
 	if (l > 0) {
 		const s = (l > 1)? 's': '';
-		text = `J'ai enregistré ${l} commande${s}, total: ${total}€`;
+		text = `J'ai enregistré ${l} commande${s}, total: ${sum}€`;
 	}
 	return {
 	    response_type: 'ephemeral',
-	    text: `Résumé de la commande groupée :\n\t${text}`
-		attachments: content
+	    text: `Résumé de la commande groupée :\n\t${text}`,
+		attachments: content,
 		mrkdwn: true
 	};
 }
