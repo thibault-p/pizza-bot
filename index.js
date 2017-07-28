@@ -315,7 +315,8 @@ function sendSms(sms, callback) {
 		ovh.request('POST', '/sms/{serviceName}/jobs', {
 			serviceName: smsService,
 			message: sms,
-			receivers: [process.env.PIZZA_NUMBER]
+			receivers: [process.env.PIZZA_NUMBER],
+			senderForResponse: true
 		}, function (err, result) {
 			console.log(err || result);
 			callback(err);
