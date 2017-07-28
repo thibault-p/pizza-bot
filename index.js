@@ -141,10 +141,7 @@ function summary() {
 		const o = orders[k];
 		console.log(o);
 		sum += o.order.price;
-		return {
-			title: o.user.name,
-			text: `*${o.order.name}* (_${o.order.size}_): ${o.order.price}€`
-		};
+		return `*${o.user.name}*\n>${o.order.name} (_${o.order.size}_): ${o.order.price}€`;
 	}
 	let text = 'Je n\'ai pas encore reçu de commande';
 	const l = Object.keys(orders).length;
