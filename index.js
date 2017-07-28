@@ -150,11 +150,11 @@ function summary() {
 		const s = (l > 1)? 's': '';
 		text = `J'ai enregistré ${l} commande${s}, total: ${total}€`;
 	}
+	content.unshift(text);
 	return {
 	    response_type: 'ephemeral',
 		title: 'Résumé de la commande groupée:',
-		text: text,
-	    attachement: content,
+	    text: content.join('\n'),
 		mrkdwn_in: ['text']
 	};
 }
