@@ -2,7 +2,6 @@ const express = require('express');
 const bodyParser = require('body-parser')
 const Bot = require('./bot');
 const app = express();
-const ovh = require('ovh');
 
 const checkDate = (typeof process.env.CHECK_DATE === 'undefined')? false : (process.env.CHECK_DATE==='true');
 const slash_token = process.env.SLACK_SLASH_TOKEN || 'test';
@@ -17,8 +16,14 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
 
+let ovh;
 // register callback for SMS if needed
 if (smsService && process.env.OVH_SMS_NOTIFY) {
+	ovh = require('ovh')({
+	   endpoint: 'ovh-eu',
+	   appKey: process.env.OVH_APP_KEY,
+	   appSecret: process.env.OVH_APP_SECRET
+   });
 	ovh.request('PUT', '/sms/{serviceName}', {
 		serviceName: smsService,
 		cgiUrl: process.env.OVH_SMS_NOTIFY,
