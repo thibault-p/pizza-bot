@@ -6,6 +6,7 @@ const ovh = require('ovh');
 
 const checkDate = (typeof process.env.CHECK_DATE === 'undefined')? false : (process.env.CHECK_DATE==='true');
 const slash_token = process.env.SLACK_SLASH_TOKEN || 'test';
+const smsService = process.env.OVH_SMS_SERVICE;
 
 const days = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
 const openDay = 2; // mardi
@@ -17,6 +18,15 @@ app.use(bodyParser.json());
 
 
 // register callback for SMS if needed
+if (smsService && process.env.OVH_SMS_NOTIFY) {
+	ovh.request('PUT', '/sms/{serviceName}', {
+		serviceName: smsService,
+		cgiUrl: process.env.OVH_SMS_NOTIFY,
+		responseType: 'cgi'
+	}, function (err, result) {
+		console.log(err || result);
+	});
+}
 
 
 const bot = new Bot();
