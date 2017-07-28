@@ -24,33 +24,22 @@ if (smsService && process.env.OVH_SMS_NOTIFY) {
 	   appKey: process.env.OVH_APP_KEY,
 	   appSecret: process.env.OVH_APP_SECRET
    });
-   ovh.request('POST', '/auth/credential', {
-		'accessRules': [
-		{ 'method': 'GET', 'path': '/*'},
-		{ 'method': 'POST', 'path': '/*'},
-		{ 'method': 'PUT', 'path': '/*'},
-		{ 'method': 'DELETE', 'path': '/*'}
-		]
-	}, function (error, credential) {
-		console.log(error || credential);
-		if (!error) {
-			ovh = require('ovh')({
-			  endpoint: 'ovh-eu',
-			  appKey: process.env.OVH_APP_KEY,
-	   	   	  appSecret: process.env.OVH_APP_SECRET,
-			  consumerKey: credential.consumerKey
-		  }, function(err, credential) {
-			  if (err) return;
-			  ovh.request('PUT', '/sms/{serviceName}', {
-		  		serviceName: smsService,
-		  		cgiUrl: process.env.OVH_SMS_NOTIFY,
-		  		responseType: 'cgi'
-		  	}, function (err, result) {
-		  		console.log(err || result);
-		  	});
-		  });
-		}
-	});
+
+	ovh = require('ovh')({
+		  endpoint: 'ovh-eu',
+		  appKey: process.env.OVH_APP_KEY,
+   	   	  appSecret: process.env.OVH_APP_SECRET,
+		  consumerKey: process.env.OVH_APP_CONSUMER
+	  }, function(err, credential) {
+		  if (err) return;
+		  ovh.request('PUT', '/sms/{serviceName}', {
+	  		serviceName: smsService,
+	  		cgiUrl: process.env.OVH_SMS_NOTIFY,
+	  		responseType: 'cgi'
+	  	}, function (err, result) {
+	  		console.log(err || result);
+	  	});
+	  });
 
 }
 
