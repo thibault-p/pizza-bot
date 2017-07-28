@@ -69,8 +69,8 @@ app.post('/pizza', function (req, res) {
 	let content;
 	let error;
 	let user = {
-		id: req.user_id,
-		name: req.user_name
+		id: req.body.user_id,
+		name: req.body.user_name
 	};
 	if (args.indexOf('help') !== -1) {
 		content = help();
@@ -130,21 +130,32 @@ function help() {
 
 
 function summary() {
-
+	let sum = 0;
 	const content = [];
-	for (o in orders) {
-		if (!orders.hasOwnProperty(o)) {
+
+	for (k in orders) {
+		if (!orders.hasOwnProperty(k)) {
 			continue;
 		}
+		const o = orders[k];
+		console.log(o);
+		sum += o.order.price;
 		return {
 			title: o.user.name,
 			text: `*${o.order.name}* (_${o.order.size}_): ${o.order.price}€`
 		};
 	}
+	let text = 'Je n\'ai pas encore reçu de commande';
+	const l = Object.keys(orders).length;
+	if (l > 0) {
+		const s = (l > 1)? 's': '';
+		text = `J'ai enregistré ${l} commande${s}, total: ${total}€`;
+	}
 	return {
 	    response_type: 'ephemeral',
 		title: 'Résumé de la commande groupée:',
-	    text: content.join('\n'),
+		text: text,
+	    attachement: content,
 		mrkdwn_in: ['text']
 	};
 }
@@ -174,8 +185,9 @@ function add(args, user) {
 	}
 	let size;
 	for (let s = 0; s < sizes.length; ++s) {
-		if (args.indexOf(sizes[s]) !== 1)
+		if (args.indexOf(sizes[s]) !== -1)
 		{
+			console.log(s);
 			size = s;
 			break;
 		}
@@ -200,6 +212,7 @@ function add(args, user) {
 			text: `Vous devez spécifier le nom de la pizza`
 		};
 	}
+	console.log(type);
 	orders[user.id] = {
 		user: user,
 		order: {
@@ -208,8 +221,25 @@ function add(args, user) {
 			size: sizes[size]
 		}
 	};
+	console.log(orders[user.id]);
 	return {
 		response_type: 'ephemeral',
 		text: `C'est noté !`
+	};
+}
+
+function cancel(user) {
+	let o = orders[user.id];
+	if (!o) {
+		return {
+		    response_type: 'ephemeral',
+		    text: `Vous \'avez pas de commande à annuler.`
+		};
+	}
+	orders[user.id] = undefined;
+	delete orders[user.id];
+	return {
+		response_type: 'ephemeral',
+		text: `Votre commande a bien été annulée.`
 	};
 }
