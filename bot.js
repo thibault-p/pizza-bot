@@ -32,9 +32,8 @@ function Bot()
 }
 
 Bot.prototype.sendMessage = function (msg) {
-	const chan = msg.channel || this.channel;
 	if (this.rtm){
-		this.rtm.sendMessage('Merci de penser à moi', chan);
+		this.rtm.sendMessage(msg, this.channel);
 	}
 };
 
