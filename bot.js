@@ -6,7 +6,6 @@ const RTM_EVENTS = require('@slack/client').RTM_EVENTS;
 const _ = require('lodash');
 const botToken = process.env.SLACK_BOT_TOKEN;
 const channelToUse = process.env.SLACK_BOT_CHANNEL || 'general'
-const ovh = require('ovh');
 
 
 function Bot()

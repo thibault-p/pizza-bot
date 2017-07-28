@@ -2,7 +2,9 @@ const express = require('express');
 const bodyParser = require('body-parser')
 const Bot = require('./bot');
 const app = express();
-const checkDate = (process.env.CHECK_DATE === undefined)? true : process.env.CHECK_DATE;
+const ovh = require('ovh');
+
+const checkDate = (process.env.CHECK_DATE === undefined)? false : process.env.CHECK_DATE;
 const slash_token = process.env.SLACK_SLASH_TOKEN || 'test';
 
 const days = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
@@ -13,16 +15,21 @@ const endTime = new Date(0, 0, 0, 11, 15, 0);
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
+
+
+// register callback for SMS if needed
+
+
 const bot = new Bot();
 
 const menu = [
-	{ name: 'Reine', match: 'A1', description: 'jambon, mozza, champignon, olives, pesto, tomates', price: [5, 6, 8]},
-	{ name: 'Larzac', match: 'A2', description: '', price: [5, 6, 8]},
-	{ name: 'Forté', match: 'A3', description: '', price: [5, 6, 8]},
-	{ name: 'Calzone', match: 'A4', description: '', price: [5, 6, 8]},
-	{ name: 'Thon', match: 'A5', description: '', price: [5, 6, 8]},
-	{ name: 'Quatre-fromages', match: 'A6', description: '', price: [5, 6, 8]},
-	{ name: 'Végétarienne', match: 'A7', description: '', price: [5, 6, 8]}
+	{ name: 'Reine', code: 'A1', description: 'jambon, mozza, champignon, olives, pesto, tomates', price: [5, 6, 8]},
+	{ name: 'Larzac', code: 'A2', description: '', price: [5, 6, 8]},
+	{ name: 'Forté', code: 'A3', description: '', price: [5, 6, 8]},
+	{ name: 'Calzone', code: 'A4', description: '', price: [5, 6, 8]},
+	{ name: 'Thon', code: 'A5', description: '', price: [5, 6, 8]},
+	{ name: 'Quatre-fromages', code: 'A6', description: '', price: [5, 6, 8]},
+	{ name: 'Végétarienne', code: 'A7', description: '', price: [5, 6, 8]}
 ];
 
 const sizes = ['tartine', 'petite', 'medium'];
@@ -90,6 +97,7 @@ app.post('/pizza', function (req, res) {
 		name: req.body.user_name
 	};
 	console.log(user);
+	console.log(args);
 	if (args.indexOf('help') !== -1) {
 		content = help();
 	} else if (args.indexOf('list') !== -1) {
@@ -100,10 +108,12 @@ app.post('/pizza', function (req, res) {
 		content = add(args, user);
 	} else if (args.indexOf('cancel') !== -1) {
 		content = cancel(user);
+	} else if (args.indexOf('commit') !== -1) {
+		content = commit(user);
 	}
 
 	if (!content) {
-		content = help('Je n\'ai pas crompris votre demande.');
+		error = 'Je n\'ai pas crompris votre demande.';
 	}
 
 	if (error) {
@@ -181,7 +191,7 @@ function summary() {
 function list() {
 	const content = menu.map((e) => {
 		const price = e.price.map((p) => { return `${p}€`; }).join(', ');
-		return `*${e.name}*: (${price}) _${e.description}_`;
+		return `(*${e.code}*)*${e.name}*: (${price}) _${e.description}_`;
 	});
 	return {
 	    response_type: 'ephemeral',
@@ -216,7 +226,7 @@ function add(args, user) {
 	}
 	let type;
 	for (let e = 0; e < menu.length; ++e) {
-		if (args.indexOf(menu[e].name.toLowerCase()) !== -1)
+		if (args.indexOf(menu[e].code.toLowerCase()) !== -1)
 		{
 			type = menu[e];
 			break;
@@ -259,13 +269,43 @@ function cancel(user) {
 }
 
 
-function commit() {
+function generateSMS() {
+	const list = {};
+	for (let k in orders) {
+		if (!orders.hasOwnProperty(k)) {
+			continue;
+		}
+		const o = orders[k];
+		const hash = `${o.order.code}-${o.order.size}`;
+		if (!list[hash]) {
+			list[hash] = {
+				number: 0, name: o.order.name, size: o.order.size
+			};
+		}
+		list[hash].number++;
+	}
+	const content = [];
+	for (let k in list) {
+		if (!list.hasOwnProperty(k)) {
+			continue;
+		}
+		const o = list[k];
+		content.push(`${o.number} ${o.size} ${o.name}`);
+	}
+	return `Bonjour, je souhaite commander pour 12h30 au nom de SIRADEL :\n${content.join('\n')}\nMerci.`
+}
+
+function commit(user) {
 	if (Object.keys(orders) === 0) {
 		return {
 			response_type: 'ephemeral',
 			text: `Pas de commande à envoyer.`
 		};
 	}
-	bot.sendMessage('Je confirme la commande');
-
+	sms = generateSMS();
+	bot.sendMessage(`La commande a été validée par ${user.name}. Je confirme la commande par SMS:\n>>>` + sms);
+	return {
+		response_type: 'ephemeral',
+		text: `Votre commande a bien été validée. :ok_hand:`
+	};
 }
