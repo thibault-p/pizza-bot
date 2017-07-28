@@ -142,7 +142,10 @@ function summary() {
 		const o = orders[k];
 		console.log(o);
 		sum += o.order.price;
-		return `*${o.user.name}*\n>${o.order.name} (_${o.order.size}_): ${o.order.price}€`;
+		content.push({
+			title: o.user.name,
+			text: `${o.order.name} (_${o.order.size}_): ${o.order.price}€`
+		});
 	}
 	let text = 'Je n\'ai pas encore reçu de commande. :pensive:';
 	const l = Object.keys(orders).length;
@@ -150,12 +153,11 @@ function summary() {
 		const s = (l > 1)? 's': '';
 		text = `J'ai enregistré ${l} commande${s}, total: ${total}€`;
 	}
-	content.unshift(text);
 	return {
 	    response_type: 'ephemeral',
-		title: 'Résumé de la commande groupée:',
-	    text: content.join('\n'),
-		mrkdwn_in: ['text']
+	    text: `Résumé de la commande groupée :\n\t${text}`
+		attachments: content
+		mrkdwn: true
 	};
 }
 
@@ -164,8 +166,6 @@ function list() {
 		const price = e.price.map((p) => { return `${p}€`; }).join(', ');
 		return `*${e.name}*: (${price}) _${e.description}_`;
 	});
-
-
 	return {
 	    response_type: 'ephemeral',
 		title: 'Menu',
