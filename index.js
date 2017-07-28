@@ -9,20 +9,25 @@ const rtm = new RtmClient(bot_token);
 const app = express();
 const CHANNELTOUSE = process.env.SLACK_BOT_CHANNEL || 'general'
 const slash_token = process.env.SLACK_SLASH_TOKEN || 'test';
+const checkDate = process.env.CHECK_DATE || true;
 
+const days = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
+const openDay = 2; // mardi
+const startTime = new Date(0, 0, 0, 9, 0, 0);
+const endTime = new Date(0, 0, 0, 11, 15, 0);
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
 
 const menu = [
-	{ name: 'Reine', description: 'jambon, mozza, champignon, olives, pesto, tomates', price: [5, 6, 8]},
-	{ name: 'Larzac', description: '', price: [5, 6, 8]},
-	{ name: 'Forté', description: '', price: [5, 6, 8]},
-	{ name: 'Calzone', description: '', price: [5, 6, 8]},
-	{ name: 'Thon', description: '', price: [5, 6, 8]},
-	{ name: 'Quatre fromages', description: '', price: [5, 6, 8]},
-	{ name: 'Végétarienne', description: '', price: [5, 6, 8]}
+	{ name: 'Reine', match: 'reine', description: 'jambon, mozza, champignon, olives, pesto, tomates', price: [5, 6, 8]},
+	{ name: 'Larzac', match: 'larzac', description: '', price: [5, 6, 8]},
+	{ name: 'Forté', match: 'forte', description: '', price: [5, 6, 8]},
+	{ name: 'Calzone', match: 'calzone', description: '', price: [5, 6, 8]},
+	{ name: 'Thon', match: 'thon', description: '', price: [5, 6, 8]},
+	{ name: 'Quatre-fromages', match: 'quatre-fromages', description: '', price: [5, 6, 8]},
+	{ name: 'Végétarienne', match: 'vegetarienne', description: '', price: [5, 6, 8]}
 ];
 
 const sizes = ['tartine', 'petite', 'medium'];
@@ -55,6 +60,22 @@ rtm.on(RTM_EVENTS.MESSAGE, function handleRtmMessage(message) {
 
 // rtm.start();
 
+function compareTime(d1, d2) {
+	let d = d1.getHours() - d2.getHours();
+	if (d !== 0) return d;
+	d = d1.getMinutes() - d2.getMinutes();
+	if (d !== 0) return d;
+	return d1.getSeconds() - d2.getSeconds();
+}
+
+function pad(num, size) {
+    var s = '00' + num;
+    return s.substr(s.length-size);
+}
+function timeToString(d) {
+	return `${pad(d.getHours(), 2)}:${pad(d.getMinutes(), 2)}`;
+}
+
 app.post('/pizza', function (req, res) {
 	if (req.body.token !== slash_token)
 	{
@@ -63,6 +84,19 @@ app.post('/pizza', function (req, res) {
 		return;
 	}
 
+	if (checkDate) {
+		const now = new Date(Date.now());
+		let open = now.getDay() !== openDay;
+		open = open && compareTime(startTime, now) <= 0;
+		open = open && compareTime(endTime, now) >= 0;
+		if (!open) {
+			res.send({
+				response_type: 'ephemeral',
+				text: `:no-good: C'est fermé !\n_Les commandes sont ouvertes le ${days[openDay]} de ${timeToString(startTime)} à ${timeToString(endTime)}._`
+			});
+			return;
+		}
+	}
 
 
 	const args = req.body.text.toLowerCase().split(' ');
@@ -113,16 +147,16 @@ function handleMessage(msg) {
 function help(err) {
 	const options = [
 		'*Général*',
-		'\t_list_: Liste les pizzas disponibles',
-		'\t_summary_: Affiche l\'ensemble de la commande',
+		'\t_list_ : Liste les pizzas disponibles',
+		'\t_summary_ : Affiche l\'ensemble de la commande',
 		'*Commander*',
-		'\t_order_: Ajoute une commande. `order [tartine|petite|medium] [pizza_name]`',
-		'\t_cancel_: Annule une commande',
-		'\t_commit_: Valide la commande groupée'
+		'\t_order_ : Ajoute une commande. `order [tartine|petite|medium] [pizza_name]`',
+		'\t_cancel_ : Annule une commande',
+		'\t_commit_ : Valide la commande groupée'
 	];
 	const attachments = [
 		{
-			title: '*Usage* : /pizza (options)',
+			title: 'Usage : /pizza (options)',
 			text: options.join('\n'),
 			mrkdwn_in: ['title', 'text']
 		}
@@ -211,7 +245,7 @@ function add(args, user) {
 	}
 	let type;
 	for (let e = 0; e < menu.length; ++e) {
-		if (args.indexOf(menu[e].name.toLowerCase()) !== 1)
+		if (args.indexOf(menu[e].name.toLowerCase()) !== -1)
 		{
 			type = menu[e];
 			break;
@@ -223,7 +257,6 @@ function add(args, user) {
 			text: `Vous devez spécifier le nom de la pizza. :wink:`
 		};
 	}
-	console.log(type);
 	orders[user.id] = {
 		user: user,
 		order: {
@@ -232,7 +265,6 @@ function add(args, user) {
 			size: sizes[size]
 		}
 	};
-	console.log(orders[user.id]);
 	return {
 		response_type: 'ephemeral',
 		text: `C'est noté ! :slightly_smiling_face:`
