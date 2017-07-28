@@ -315,7 +315,6 @@ function sendSms(sms, callback) {
 		ovh.request('POST', '/sms/{serviceName}/jobs', {
 			serviceName: smsService,
 			message: sms,
-			sender: 'Siradel',
 			receivers: [process.env.PIZZA_NUMBER]
 		}, function (err, result) {
 			console.log(err || result);
