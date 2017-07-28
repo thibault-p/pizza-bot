@@ -4,7 +4,7 @@ const Bot = require('./bot');
 const app = express();
 const ovh = require('ovh');
 
-const checkDate = (process.env.CHECK_DATE === undefined)? false : process.env.CHECK_DATE;
+const checkDate = (typeof process.env.CHECK_DATE === 'undefined')? false : process.env.CHECK_DATE;
 const slash_token = process.env.SLACK_SLASH_TOKEN || 'test';
 
 const days = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
@@ -59,7 +59,7 @@ function timeToString(d) {
 
 app.post('/pizza/smsResponse', function(req, res) {
 	if (req.body.moMessage) {
-		bot.sendMessage('Je viens de recevoir une réponse à la commande :\n>>>' + req.body.moMessage);
+		bot.sendMessage('Je viens de recevoir une réponse par SMS à propos de la commande :\n>>>' + req.body.moMessage);
 	}
 	res.status(200);
 	res.send();
