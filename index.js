@@ -110,7 +110,7 @@ function handleMessage(msg) {
 	rtm.sendMessage('Merci de penser à moi', msg.channel);
 }
 
-function help() {
+function help(error) {
 	const options = [
 		'*Général*',
 		'\t_list_: Liste les pizzas disponibles',
@@ -124,6 +124,7 @@ function help() {
 	return {
 	    response_type: 'ephemeral',
 		title: 'Usage : /pizza (options)',
+		pretext: error,
 	    text: options.join('\n'),
 		mrkdwn_in: ['text']
 	};
@@ -143,7 +144,7 @@ function summary() {
 		sum += o.order.price;
 		return `*${o.user.name}*\n>${o.order.name} (_${o.order.size}_): ${o.order.price}€`;
 	}
-	let text = 'Je n\'ai pas encore reçu de commande';
+	let text = 'Je n\'ai pas encore reçu de commande. :pensive:';
 	const l = Object.keys(orders).length;
 	if (l > 0) {
 		const s = (l > 1)? 's': '';
@@ -178,7 +179,7 @@ function add(args, user) {
 	if (o) {
 		return {
 		    response_type: 'ephemeral',
-		    text: `Vous avez déjà une commande: ${o.type} (${o.size}) ${o.price}€`
+		    text: `Vous avez déjà une commande: ${o.order.type} (${o.order.size}) ${o.order.price}€.`
 		};
 	}
 	let size;
@@ -193,7 +194,7 @@ function add(args, user) {
 	if (size === undefined) {
 		return {
 			response_type: 'ephemeral',
-			text: `Vous devez spécifier la taille de la pizza`
+			text: `Vous devez spécifier la taille de la pizza. :wink:`
 		};
 	}
 	let type;
@@ -207,7 +208,7 @@ function add(args, user) {
 	if (!type) {
 		return {
 			response_type: 'ephemeral',
-			text: `Vous devez spécifier le nom de la pizza`
+			text: `Vous devez spécifier le nom de la pizza. :wink:`
 		};
 	}
 	console.log(type);
@@ -222,7 +223,7 @@ function add(args, user) {
 	console.log(orders[user.id]);
 	return {
 		response_type: 'ephemeral',
-		text: `C'est noté !`
+		text: `C'est noté ! :slightly_smiling_face:`
 	};
 }
 
@@ -231,13 +232,13 @@ function cancel(user) {
 	if (!o) {
 		return {
 		    response_type: 'ephemeral',
-		    text: `Vous \'avez pas de commande à annuler.`
+		    text: `Vous \'avez pas de commande à annuler. :wink:`
 		};
 	}
 	orders[user.id] = undefined;
 	delete orders[user.id];
 	return {
 		response_type: 'ephemeral',
-		text: `Votre commande a bien été annulée.`
+		text: `Votre commande a bien été annulée. :confounded:`
 	};
 }
