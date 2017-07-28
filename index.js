@@ -25,7 +25,7 @@ const menu = [
 	{ name: 'Végétarienne', description: '', price: [5, 6, 8]}
 ];
 
-const size = ['tartine', 'petite', 'medium'];
+const sizes = ['tartine', 'petite', 'medium'];
 
 
 let channel;
@@ -74,7 +74,7 @@ app.post('/pizza', function (req, res) {
 		content = list();
 	} else if (args.indexOf('summary') !== -1) {
 		content = summary();
-	} else if (args.indexOf('add') !== -1) {
+	} else if (args.indexOf('order') !== -1) {
 		content = add(args, { id: req.user_id, name: req.user_name });
 	}
 
@@ -106,7 +106,7 @@ function help() {
 		'\t_list_: Liste les pizzas disponibles',
 		'\t_summary_: Affiche l\'ensemble de la commande',
 		'*Commander*',
-		'\t_add_: Ajoute une commande. `add [tartine|petite|medium] [pizza_name]`',
+		'\t_order_: Ajoute une commande. `order [tartine|petite|medium] [pizza_name]`',
 		'\t_cancel_: Annule une commande',
 		'\t_commit_: Valide la commande groupée'
 	];
@@ -151,10 +151,10 @@ function add(args, user) {
 		};
 	}
 	let size;
-	for (const s of size) {
-		if (args.indexOf(s) !== 1)
+	for (let s = 0; s < sizes.length; ++s) {
+		if (args.indexOf(sizes[s]) !== 1)
 		{
-			size = s;
+			size = sizes[s];
 			break;
 		}
 	}
@@ -165,10 +165,10 @@ function add(args, user) {
 		};
 	}
 	let type;
-	for (const e of m) {
-		if (args.indexOf(e.name) !== 1)
+	for (let e = 0; e < menu.length; ++e) {
+		if (args.indexOf(menu[e].name) !== 1)
 		{
-			type = m;
+			type = menu[e];
 			break;
 		}
 	}
