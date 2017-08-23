@@ -83,9 +83,7 @@ function timeToString(d) {
 }
 
 app.post('/pizza/smsResponse', function(req, res) {
-	console.log(req.body);
-	bot.sendMessage('Je viens de recevoir une réponse par SMS à propos de la commande :\n>>>' + req.body.moMessage);
-
+	bot.sendMessage('Je viens de recevoir une réponse par SMS à propos de la commande :\n>>>' + req.body.message);
 	res.status(200);
 	res.send();
 });
