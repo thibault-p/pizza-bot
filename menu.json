@@ -1,0 +1,15 @@
+{
+	"categories" : [
+		{
+			"name": "A",
+			"list": [
+				{
+					"name": "Reine",
+					"description": "jambon, mozza, champignon, olives, pesto, tomates",
+					"price": [5, 6, 8]
+				}
+			]
+		}
+	]
+
+}

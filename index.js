@@ -47,15 +47,27 @@ if (smsService && process.env.OVH_SMS_NOTIFY) {
 
 const bot = new Bot();
 
-const menu = [
-	{ name: 'Reine', code: 'A1', description: 'jambon, mozza, champignon, olives, pesto, tomates', price: [5, 6, 8]},
-	{ name: 'Larzac', code: 'A2', description: '', price: [5, 6, 8]},
-	{ name: 'Forté', code: 'A3', description: '', price: [5, 6, 8]},
-	{ name: 'Calzone', code: 'A4', description: '', price: [5, 6, 8]},
-	{ name: 'Thon', code: 'A5', description: '', price: [5, 6, 8]},
-	{ name: 'Quatre-fromages', code: 'A6', description: '', price: [5, 6, 8]},
-	{ name: 'Végétarienne', code: 'A7', description: '', price: [5, 6, 8]}
-];
+const menuRaw = require('./menu.json');
+
+const menu = [];
+menuRaw.categories.forEach((c) => {
+	c.list.forEach((e, i) => {
+		e.code = c.name + (i + 1)
+		menu.push(e);
+	});
+});
+
+
+
+// const menu = [
+// 	{ name: 'Reine', code: 'A1', description: 'jambon, mozza, champignon, olives, pesto, tomates', price: [5, 6, 8]},
+// 	{ name: 'Larzac', code: 'A2', description: '', price: [5, 6, 8]},
+// 	{ name: 'Forté', code: 'A3', description: '', price: [5, 6, 8]},
+// 	{ name: 'Calzone', code: 'A4', description: '', price: [5, 6, 8]},
+// 	{ name: 'Thon', code: 'A5', description: '', price: [5, 6, 8]},
+// 	{ name: 'Quatre-fromages', code: 'A6', description: '', price: [5, 6, 8]},
+// 	{ name: 'Végétarienne', code: 'A7', description: '', price: [5, 6, 8]}
+// ];
 
 const sizes = ['tartine', 'petite', 'medium'];
 
