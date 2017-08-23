@@ -40,7 +40,6 @@ if (smsService && process.env.OVH_SMS_NOTIFY) {
 	  		console.log(err || result);
 	  	});
 	  });
-
 }
 
 
@@ -82,9 +81,8 @@ function timeToString(d) {
 }
 
 app.post('/pizza/smsResponse', function(req, res) {
-	if (req.body.moMessage) {
-		bot.sendMessage('Je viens de recevoir une réponse par SMS à propos de la commande :\n>>>' + req.body.moMessage);
-	}
+	bot.sendMessage('Je viens de recevoir une réponse par SMS à propos de la commande :\n>>>' + req.body.moMessage);
+
 	res.status(200);
 	res.send();
 });
