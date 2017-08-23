@@ -7,7 +7,39 @@
 					"name": "Reine",
 					"description": "jambon, mozza, champignon, olives, pesto, tomates",
 					"price": [5, 6, 8]
+				},
+				{
+					"name": "Larzac",
+					"description": "jambon, mozza, champignon, olives, pesto, tomates",
+					"price": [5, 6, 8]
+				},
+				{
+					"name": "Forté",
+					"description": "jambon, mozza, champignon, olives, pesto, tomates",
+					"price": [5, 6, 8]
+				},
+				{
+					"name": "Calzone",
+					"description": "jambon, mozza, champignon, olives, pesto, tomates",
+					"price": [5, 6, 8]
+				},
+				{
+					"name": "Thon",
+					"description": "jambon, mozza, champignon, olives, pesto, tomates",
+					"price": [5, 6, 8]
+				},
+				{
+					"name": "Quatre-fromages",
+					"description": "jambon, mozza, champignon, olives, pesto, tomates",
+					"price": [5, 6, 8]
+				},
+				{
+					"name": "Vegetarienne",
+					"description": "jambon, mozza, champignon, olives, pesto, tomates",
+					"price": [5, 6, 8]
 				}
+
+
 			]
 		}
 	]
