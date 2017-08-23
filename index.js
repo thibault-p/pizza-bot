@@ -34,8 +34,10 @@ if (smsService && process.env.OVH_SMS_NOTIFY) {
 		  if (err) return;
 		  ovh.request('PUT', '/sms/{serviceName}', {
 	  		serviceName: smsService,
-	  		cgiUrl: process.env.OVH_SMS_NOTIFY,
-	  		responseType: 'cgi'
+			smsResponse: {
+				cgiUrl: process.env.OVH_SMS_NOTIFY,
+				responseType: 'cgi'
+			}
 	  	}, function (err, result) {
 	  		console.log(err || result);
 	  	});
@@ -81,6 +83,7 @@ function timeToString(d) {
 }
 
 app.post('/pizza/smsResponse', function(req, res) {
+	console.log(req.body);
 	bot.sendMessage('Je viens de recevoir une réponse par SMS à propos de la commande :\n>>>' + req.body.moMessage);
 
 	res.status(200);
