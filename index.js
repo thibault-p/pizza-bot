@@ -114,6 +114,7 @@ app.post('/pizza', function (req, res) {
 		console.log('Checking date');
 		const now = new Date(Date.now());
 		console.log(now);
+		console.log(now.getDay());
 		let open = now.getDay() !== openDay;
 		console.log(open);
 		open = open && compareTime(startTime, now) <= 0;
