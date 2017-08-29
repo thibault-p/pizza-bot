@@ -113,9 +113,18 @@ app.post('/pizza', function (req, res) {
 	if (checkDate) {
 		console.log('Checking date');
 		const now = new Date(Date.now());
+
+
+		var offset = new Date().getTimezoneOffset();
+		console.log(offset);
+		console.log(now);
+		console.log(now.getDay());
 		let open = now.getDay() === openDay;
+		console.log(open);
 		open = open && compareTime(startTime, now) <= 0;
+		console.log(open);
 		open = open && compareTime(endTime, now) >= 0;
+		console.log(open);
 		if (!open) {
 			res.send({
 				response_type: 'ephemeral',
