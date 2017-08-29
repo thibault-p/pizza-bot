@@ -112,7 +112,8 @@ app.post('/pizza', function (req, res) {
 
 	if (checkDate) {
 		console.log('Checking date');
-		const now = new Date(Date.now());
+		const tmp = new Date(Date.now()).toISOString();
+		const now = new Date(tmp.replace('Z'), '+02');
 
 
 		var offset = new Date().getTimezoneOffset();
