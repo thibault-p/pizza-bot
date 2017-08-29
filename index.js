@@ -79,11 +79,11 @@ let orders = {};
 
 
 function compareTime(d1, d2) {
-	let d = d1.getHours() - d2.getHours();
+	let d = d1.getUTCHours() - d2.getUTCHours();
 	if (d !== 0) return d;
-	d = d1.getMinutes() - d2.getMinutes();
+	d = d1.getUTCMinutes() - d2.getUTCMinutes();
 	if (d !== 0) return d;
-	return d1.getSeconds() - d2.getSeconds();
+	return d1.getUTCSeconds() - d2.getUTCSeconds();
 }
 
 function pad(num, size) {
