@@ -69,7 +69,7 @@ menuRaw.categories.forEach((c) => {
 // 	{ name: 'Végétarienne', code: 'A7', description: '', price: [5, 6, 8]}
 // ];
 
-const sizes = ['tartine', 'petite', 'medium'];
+const sizes = ['tartine', 'moyenne', 'grande'];
 
 
 let channel;
@@ -177,7 +177,7 @@ function help(err) {
 		'\t_list_ : Liste les pizzas disponibles',
 		'\t_summary_ : Affiche l\'ensemble de la commande',
 		'*Commander*',
-		'\t_order_ : Ajoute une commande. `order [tartine|petite|medium] [pizza_code]`',
+		'\t_order_ : Ajoute une commande. `order [' +  sizes.join('|') +'] [pizza_code]`',
 		'\t_cancel_ : Annule une commande',
 		'\t_commit_ : Valide la commande groupée'
 	];
