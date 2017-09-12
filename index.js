@@ -281,7 +281,7 @@ function add(args, user) {
 	if (!type) {
 		return {
 			response_type: 'ephemeral',
-			text: `Vous devez spécifier le nom de la pizza. :wink:`
+			text: `Vous devez spécifier le code de la pizza. :wink:`
 		};
 	}
 	orders[user.id] = {
@@ -289,7 +289,8 @@ function add(args, user) {
 		order: {
 			name: type.name,
 			price: type.price[size],
-			size: sizes[size]
+			size: sizes[size],
+			type: type.code
 		}
 	};
 	return {

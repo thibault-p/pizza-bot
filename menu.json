@@ -41,22 +41,22 @@
 				},
 				{
 					"name": "Calzone",
-					"description": "",
+					"description": "jambon, champignons, oeuf, pesto",
 					"price": [5.5, 7, 9]
 				},
 				{
 					"name": "Indienne",
-					"description": "",
+					"description": "poulet, ananas, oignons rouges, sauce curry",
 					"price": [5.5, 7, 9]
 				},
 				{
 					"name": "Paysanne",
-					"description": "",
+					"description": "poitrine fumée, pommes de terre, champignons, crème",
 					"price": [5.5, 7, 9]
 				},
 				{
 					"name": "Carbonara",
-					"description": "",
+					"description": "poitrine fumée, oeuf, parmesan, crème",
 					"price": [5.5, 7, 9]
 				}
 			]
@@ -66,22 +66,22 @@
 			"list": [
 				{
 					"name": "Raclette",
-					"description": "",
+					"description": "jambon cru, tomme de Savoie, tomates, pommes de terre",
 					"price": [6, 7.5, 9.5]
 				},
 				{
 					"name": "Burger",
-					"description": "",
+					"description": "Steak haché, oignons, tomates, cheddar, sauce burger",
 					"price": [6, 7.5, 9.5]
 				},
 				{
 					"name": "Kebab",
-					"description": "",
+					"description": "viande kebab, poivrons, oignons rouges, sauce blanche",
 					"price": [6, 7.5, 9.5]
 				},
 				{
 					"name": "Bayou",
-					"description": "",
+					"description": "poulet, chorizo, parmesan, sauce barbecue",
 					"price": [6, 7.5, 9.5]
 				}
 			]
@@ -91,26 +91,25 @@
 			"list": [
 				{
 					"name": "Coquille",
-					"description": "",
+					"description": "crème, Noix de saint-jacques, champignons, parmesan, beurre persillé",
 					"price": [7, 8, 10.5]
 				},
 				{
 					"name": "Ecossaise",
-					"description": "",
+					"description": "crème, saumon, tomates, parmesan, roquette",
 					"price": [7, 8, 10.5]
 				},
 				{
 					"name": "Tropico",
-					"description": "",
+					"description": "merguez, viande kebab, pommes de terre, oignons"
 					"price": [7, 8, 10.5]
 				},
 				{
 					"name": "Cowboy",
-					"description": "",
+					"description": "steak haché, poitrine fumée, tomme de Savoie, oeuf, sauce barbecue",
 					"price": [7, 8, 10.5]
 				}
 			]
 		}
 	]
-
 }
