@@ -293,6 +293,7 @@ function add(args, user) {
 			type: type.code
 		}
 	};
+	bot.sendMessage('Une commande vient d\'être ajoutée. Quelqu\'un d\'autre ? :smirk:');
 	return {
 		response_type: 'ephemeral',
 		text: `C'est noté ! :slightly_smiling_face:`
@@ -309,6 +310,7 @@ function cancel(user) {
 	}
 	orders[user.id] = undefined;
 	delete orders[user.id];
+	bot.sendMessage('Une commande vient d\'être retirée. :(');
 	return {
 		response_type: 'ephemeral',
 		text: `Votre commande a bien été annulée. :confounded:`
