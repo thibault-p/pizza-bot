@@ -325,7 +325,8 @@ function generateSMS() {
 			continue;
 		}
 		const o = orders[k];
-		const hash = `${o.order.code}-${o.order.size}`;
+		const hash = `${o.order.type}-${o.order.size}`;
+		console.log(hash + ' -> ' + o);
 		if (!list[hash]) {
 			list[hash] = {
 				number: 0, name: o.order.name, size: o.order.size
