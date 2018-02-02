@@ -1,99 +1,46 @@
 const express = require('express');
-const bodyParser = require('body-parser')
-const Bot = require('./bot');
+const bodyParser = require('body-parser');
 const app = express();
+const moment = require('moment');
 
-const checkDate = (typeof process.env.CHECK_DATE === 'undefined')? false : (process.env.CHECK_DATE==='true');
+const Counter = require('./counter');
+const SmsService = require('./smsservice');
+
 const slash_token = process.env.SLACK_SLASH_TOKEN || 'test';
-const smsService = process.env.OVH_SMS_SERVICE;
 
-const days = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
-const openDay = 2; // mardi
-const startTime = new Date(0, 0, 0, 9, 0, 0);
-const endTime = new Date(0, 0, 0, 11, 15, 0);
+// init service to send sms
+const smsService = new SmsService(
+	process.env.OVH_APP_KEY,
+	process.env.OVH_APP_SECRET,
+	process.env.OVH_APP_CONSUMER,
+	process.env.OVH_SMS_NOTIFY,
+	process.env.OVH_SMS_SERVICE);
 
+// init Counter
+const _startTime = process.env.STARTTIME;
+const _endTime = process.env.ENDTIME;
+
+// Check if opening and closing time are valid
+const startTime = moment(_startTime, 'e-HH:mm');
+if (!startTime.isValid()){
+	console.error('STARTTIME is not valid');
+	return;
+}
+const endTime =  moment(_endTime, 'e-HH:mm');
+if (!endTime.isValid()){
+	console.error('STARTTIME is not valid');
+	return;
+}
+const pizzaCounter = new Counter(startTime, endTime);
+pizzaCounter.showInfo();
+
+// Init web server
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
+app.set('view engine', 'ejs');
 
 
-let ovh;
-// register callback for SMS if needed
-if (smsService && process.env.OVH_SMS_NOTIFY) {
-	ovh = require('ovh')({
-	   endpoint: 'ovh-eu',
-	   appKey: process.env.OVH_APP_KEY,
-	   appSecret: process.env.OVH_APP_SECRET
-   });
-
-	ovh = require('ovh')({
-		  endpoint: 'ovh-eu',
-		  appKey: process.env.OVH_APP_KEY,
-   	   	  appSecret: process.env.OVH_APP_SECRET,
-		  consumerKey: process.env.OVH_APP_CONSUMER
-	  }, function(err, credential) {
-		  if (err) return;
-		  ovh.request('PUT', '/sms/{serviceName}', {
-	  		serviceName: smsService,
-			smsResponse: {
-				cgiUrl: process.env.OVH_SMS_NOTIFY,
-				responseType: 'cgi'
-			}
-	  	}, function (err, result) {
-	  		console.log(err || result);
-	  	});
-	  });
-}
-
-
-const bot = new Bot();
-
-const menuRaw = require('./menu.json');
-
-const menu = [];
-menuRaw.categories.forEach((c) => {
-	c.list.forEach((e, i) => {
-		e.code = c.name + (i + 1)
-		menu.push(e);
-	});
-});
-
-
-
-// const menu = [
-// 	{ name: 'Reine', code: 'A1', description: 'jambon, mozza, champignon, olives, pesto, tomates', price: [5, 6, 8]},
-// 	{ name: 'Larzac', code: 'A2', description: '', price: [5, 6, 8]},
-// 	{ name: 'Forté', code: 'A3', description: '', price: [5, 6, 8]},
-// 	{ name: 'Calzone', code: 'A4', description: '', price: [5, 6, 8]},
-// 	{ name: 'Thon', code: 'A5', description: '', price: [5, 6, 8]},
-// 	{ name: 'Quatre-fromages', code: 'A6', description: '', price: [5, 6, 8]},
-// 	{ name: 'Végétarienne', code: 'A7', description: '', price: [5, 6, 8]}
-// ];
-
-const sizes = ['tartine', 'moyenne', 'grande'];
-
-
-let channel;
-let self;
-
-let orders = {};
-
-
-function compareTime(d1, d2) {
-	let d = d1.getUTCHours() - d2.getUTCHours();
-	if (d !== 0) return d;
-	d = d1.getUTCMinutes() - d2.getUTCMinutes();
-	if (d !== 0) return d;
-	return d1.getUTCSeconds() - d2.getUTCSeconds();
-}
-
-function pad(num, size) {
-    var s = '00' + num;
-    return s.substr(s.length-size);
-}
-function timeToString(d) {
-	return `${pad(d.getHours(), 2)}:${pad(d.getMinutes(), 2)}`;
-}
-
+ // Routes
 app.post('/pizza/smsResponse', function(req, res) {
 	bot.sendMessage('Je viens de recevoir une réponse par SMS à propos de la commande :\n>>>' + req.body.message);
 	res.status(200);
@@ -101,8 +48,13 @@ app.post('/pizza/smsResponse', function(req, res) {
 });
 
 
-
 app.post('/pizza', function (req, res) {
+	if (!req || !req.body) {
+		res.status(403);
+		return;
+	}
+
+	// check token
 	if (req.body.token !== slash_token)
 	{
 		res.status(403);
@@ -110,274 +62,35 @@ app.post('/pizza', function (req, res) {
 		return;
 	}
 
-	if (checkDate) {
-		console.log('Checking date');
-		const tmp = new Date(Date.now()).toISOString();
-		const now = new Date(tmp.replace('Z'), '+02');
-
-
-		var offset = new Date().getTimezoneOffset();
-		console.log(offset);
-		console.log(now);
-		console.log(now.getDay());
-		let open = now.getDay() === openDay;
-		console.log(open);
-		open = open && compareTime(startTime, now) <= 0;
-		console.log(open);
-		open = open && compareTime(endTime, now) >= 0;
-		console.log(open);
-		if (!open) {
-			res.send({
-				response_type: 'ephemeral',
-				text: `:no_good: C'est fermé !\n_Les commandes sont ouvertes le ${days[openDay]} de ${timeToString(startTime)} à ${timeToString(endTime)}._`
-			});
-			return;
-		}
+	// get command
+	if (!req.body.text) {
+		res.status(403);
+		res.send({ error: 'text is missing' });
+		return;
 	}
-
 	const args = req.body.text.toLowerCase().split(' ');
-	let content;
-	let error;
-	let user = {
+
+	// Get user
+	const user = {
 		id: req.body.user_id,
 		name: req.body.user_name
 	};
-	console.log(user);
-	console.log(args);
-	if (args.indexOf('help') !== -1) {
-		content = help();
-	} else if (args.indexOf('list') !== -1) {
-		content = list();
-	} else if (args.indexOf('summary') !== -1) {
-		content = summary();
-	} else if (args.indexOf('order') !== -1) {
-		content = add(args, user);
-	} else if (args.indexOf('cancel') !== -1) {
-		content = cancel(user);
-	} else if (args.indexOf('commit') !== -1) {
-		content = commit(user);
+	if (!user.id || !user.name) {
+		res.status(403);
+		res.send({ error: 'user not valid' });
+		return;
 	}
 
-	if (!content) {
-		error = 'Je n\'ai pas crompris votre demande.';
-	}
-
-	if (error) {
-		content = help(error);
-	}
+	const content = pizzaCounter.parseCommand(user, args);
 	res.send(content);
 });
 
 
-app.listen(process.env.PORT || 5000);
-
-function help(err) {
-	const options = [
-		'*Général*',
-		'\t_list_ : Liste les pizzas disponibles',
-		'\t_summary_ : Affiche l\'ensemble de la commande',
-		'*Commander*',
-		'\t_order_ : Ajoute une commande. `order [' +  sizes.join('|') +'] [pizza_code]`',
-		'\t_cancel_ : Annule une commande',
-		'\t_commit_ : Valide la commande groupée'
-	];
-	const attachments = [
-		{
-			title: 'Usage : /pizza (options)',
-			text: options.join('\n'),
-			mrkdwn_in: ['title', 'text']
-		}
-	];
-	if (err) {
-		attachments.unshift({
-			color: 'danger',
-			text: `Erreur : ${err}`,
-			mrkdwn_in: ['title', 'text']
-		});
-	}
-	return {
-	    response_type: 'ephemeral',
-		attachments: attachments,
-		mrkdwn: true
-	};
-}
+app.get('/', function(req, res) {
+	res.render('pages/index');
+});
 
 
-function summary() {
-	let sum = 0;
-	const content = [];
-
-	for (k in orders) {
-		if (!orders.hasOwnProperty(k)) {
-			continue;
-		}
-		const o = orders[k];
-		console.log(o);
-		sum += o.order.price;
-		content.push({
-			title: o.user.name,
-			text: `${o.order.name} (_${o.order.size}_): ${o.order.price}€`,
-			"mrkdwn_in": ["text"]
-		});
-	}
-	let text = 'Je n\'ai pas encore reçu de commande. :pensive:';
-	const l = Object.keys(orders).length;
-	if (l > 0) {
-		const s = (l > 1)? 's': '';
-		text = `J'ai enregistré ${l} commande${s}, total: ${sum}€`;
-	}
-	return {
-	    response_type: 'ephemeral',
-	    text: `Résumé de la commande groupée :\n\t${text}`,
-		attachments: content,
-		mrkdwn: true
-	};
-}
-
-function list() {
-	const content = menu.map((e) => {
-		const price = e.price.map((p) => { return `${p}€`; }).join(', ');
-		return `(*${e.code}*) *${e.name}* : (${price}) _${e.description}_`;
-	});
-	return {
-	    response_type: 'ephemeral',
-		title: 'Menu',
-	    text: content.join('\n'),
-		mrkdwn_in: ['text']
-	};
-}
-
-function add(args, user) {
-	let o = orders[user.id];
-	if (o) {
-		return {
-		    response_type: 'ephemeral',
-		    text: `Vous avez déjà une commande: ${o.order.type} (${o.order.size}) ${o.order.price}€.`
-		};
-	}
-	let size;
-	for (let s = 0; s < sizes.length; ++s) {
-		if (args.indexOf(sizes[s]) !== -1)
-		{
-			console.log(s);
-			size = s;
-			break;
-		}
-	}
-	if (size === undefined) {
-		return {
-			response_type: 'ephemeral',
-			text: `Vous devez spécifier la taille de la pizza. :wink:`
-		};
-	}
-	let type;
-	for (let e = 0; e < menu.length; ++e) {
-		if (args.indexOf(menu[e].code.toLowerCase()) !== -1)
-		{
-			type = menu[e];
-			break;
-		}
-	}
-	if (!type) {
-		return {
-			response_type: 'ephemeral',
-			text: `Vous devez spécifier le code de la pizza. :wink:`
-		};
-	}
-	orders[user.id] = {
-		user: user,
-		order: {
-			name: type.name,
-			price: type.price[size],
-			size: sizes[size],
-			type: type.code
-		}
-	};
-	bot.sendMessage('Une commande vient d\'être ajoutée. Quelqu\'un d\'autre ? :smirk:');
-	return {
-		response_type: 'ephemeral',
-		text: `C'est noté ! :slightly_smiling_face:`
-	};
-}
-
-function cancel(user) {
-	let o = orders[user.id];
-	if (!o) {
-		return {
-		    response_type: 'ephemeral',
-		    text: `Vous \'avez pas de commande à annuler. :wink:`
-		};
-	}
-	orders[user.id] = undefined;
-	delete orders[user.id];
-	bot.sendMessage('Une commande vient d\'être retirée. :(');
-	return {
-		response_type: 'ephemeral',
-		text: `Votre commande a bien été annulée. :confounded:`
-	};
-}
-
-
-function generateSMS() {
-	const list = {};
-	for (let k in orders) {
-		if (!orders.hasOwnProperty(k)) {
-			continue;
-		}
-		const o = orders[k];
-		const hash = `${o.order.type}-${o.order.size}`;
-		console.log(hash + ' -> ' + o);
-		if (!list[hash]) {
-			list[hash] = {
-				number: 0, name: o.order.name, size: o.order.size
-			};
-		}
-		list[hash].number++;
-	}
-	const content = [];
-	for (let k in list) {
-		if (!list.hasOwnProperty(k)) {
-			continue;
-		}
-		const o = list[k];
-		content.push(`${o.number} ${o.size} ${o.name}`);
-	}
-	return `Bonjour, je souhaite commander pour 12h30 au nom de SIRADEL :\n${content.join('\n')}\nMerci.`
-}
-
-function sendSms(sms, callback) {
-	if (ovh && process.env.PIZZA_NUMBER) {
-		ovh.request('POST', '/sms/{serviceName}/jobs', {
-			serviceName: smsService,
-			message: sms,
-			receivers: [process.env.PIZZA_NUMBER],
-			senderForResponse: true
-		}, function (err, result) {
-			console.log(err || result);
-			callback(err);
-		});
-	}
-}
-
-function commit(user) {
-	if (Object.keys(orders) === 0) {
-		return {
-			response_type: 'ephemeral',
-			text: `Pas de commande à envoyer.`
-		};
-	}
-	sms = generateSMS();
-	sendSms(sms, function(err) {
-		if (err) {
-			bot.sendMessage('Oups oups oups, je n\'ai pas réussi à envoyer le SMS. :sweat:');
-			return;
-		}
-		bot.sendMessage(`La commande a été validée par ${user.name}. Je confirme la commande par SMS:\n>>>` + sms);
-		orders = {};
-	});
-
-	return {
-		response_type: 'ephemeral',
-		text: `Votre commande a bien été validée. :ok_hand:`
-	};
-}
+const port = process.env.PORT || 5000;
+app.listen(port);
+console.log('Starting server on port:', port);

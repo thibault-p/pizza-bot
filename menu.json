@@ -1,4 +1,5 @@
 {
+	"sizes": ["tartine", "moyenne", "grande"],
 	"categories" : [
 		{
 			"name": "A",
@@ -28,14 +29,13 @@
 					"description": "poivrons, champignon, roquette, tomates",
 					"price": [5, 6, 8]
 				}
-
 			]
 		},
 		{
 			"name": "B",
 			"list": [
 				{
-					"name": "4Fro",
+					"name": "Quatre Fromages",
 					"description": "chèvre, parmesan, tomme, noix",
 					"price": [5.5, 7, 9]
 				},
@@ -91,7 +91,7 @@
 			"list": [
 				{
 					"name": "Coquille",
-					"description": "crème, Noix de saint-jacques, champignons, parmesan, beurre persillé",
+					"description": "crème, noix de saint-jacques, champignons, parmesan, beurre persillé",
 					"price": [7, 8, 10.5]
 				},
 				{

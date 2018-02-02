@@ -16,7 +16,10 @@
     "ejs": "2.5.6",
     "express": "4.15.2",
     "lodash": "^4.17.4",
-    "ovh": "^2.0.1"
+    "moment-timezone": "^0.5.14",
+    "momentjs": "^2.0.0",
+    "ovh": "^2.0.1",
+    "redis": "^2.8.0"
   },
   "devDependencies": {
     "request": "^2.81.0",
