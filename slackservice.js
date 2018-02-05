@@ -18,8 +18,8 @@ const SlackService = {
     generateSummary: function(orders) {
         let sum = 0;
         const content = [];
-
-        for (k in orders) {
+        console.log(orders);
+        for (let k in orders) {
             if (!orders.hasOwnProperty(k)) {
                 continue;
             }
@@ -80,15 +80,24 @@ const SlackService = {
         return {
             content: {
                 response_type: 'ephemeral',
-                text: `:no_good: C'est fermé !\n_Les commandes sont ouvertes du ${from} au ${until}._`
+                text: `:no_good: C'est fermé !\n_Les commandes sont ouvertes du ${from.format("dddd HH:mm")} au ${until.format("dddd HH:mm")}._`
             }
         };
     },
 
-    generateAlreadyOrder: function(type, size, price) {
+    generateNotReady: function() {
+        return {
+            content: {
+                response_type: 'ephemeral',
+                text: `Je suis à vous dans quelques secondes. :sweat_smile: `
+            }
+        };
+    },
+
+    generateAlreadyOrder: function(type, name, size, price) {
         return {
             response_type: 'ephemeral',
-            text: `Vous avez déjà une commande: ${type} (${size}) ${price}€.`
+            text: `Vous avez déjà une commande: ${type} - _${name}_ (${size}) ${price}€.`
         };
     },
 

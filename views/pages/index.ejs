@@ -5,11 +5,12 @@
 </head>
 
 <body>
-
-  <% include ../partials/nav.ejs %>
-
-
-
-
+    <div class="container">
+        <div>
+            <h2>Ouverture</h2>
+            Le <%= counter.opening.format('dddd') %>
+            de <%= counter.opening.format('HH:mm') %>  à <%= counter.closing.format('HH:mm') %>
+        </div>
+    </div>
 </body>
 </html>

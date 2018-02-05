@@ -6,12 +6,17 @@ moment.locale('fr');
 const SlackService = require('./slackservice');
 const BotService = require('./botservice');
 const SmsService = require('./smsservice');
+const RedisService = require('./redisservice');
 
 // Config file listing available pizza :)
 const menuRaw = require('./menu.json');
 
 const COUNTER_DEFAULT_CUSTOMER = process.env.DEFAULT_CUSTOMER || 'SIRADEL';
 const COUNTER_DEFAULT_TIME = process.env.DEFAULT_PICKUP_TIME || '12h30';
+
+
+const COUNTER_ORDER_KEY = 'PIZZA_BOT_ORDER';
+const COUNTER_REMINDER_SECONDS = 60 * 10; // 5 minutes
 
 class Counter {
     constructor(open, close, phone) {
@@ -25,15 +30,34 @@ class Counter {
         this._menu = [];
         this._sizes = [];
         this._orders = {};
+        this._ready = false;
+        this._timeout = -1;
+        this._redisService = new RedisService(COUNTER_ORDER_KEY);
+        const self = this;
+        this._redisService.load((err, data) => {
+            if (err) {
+                console.error('Failed to retrieve previous order');
+            }
+            self._orders = data || {};
+            self._addOrRemoveReminder();
+            self._ready = true;
+        });
         this.initializeMenu();
-        // TODO retrieve orders from redis
     }
     get opening() {
-        return this.open.format('dddd HH:mm');
+        return this.open;
     }
 
     get closing() {
-        return this.close.format('dddd HH:mm');
+        return this.close;
+    }
+
+    get menu() {
+        return this._menu;
+    }
+
+    get size() {
+        return this._sizes;
     }
 
     get phone() {
@@ -41,19 +65,31 @@ class Counter {
     }
 
     set customer(name) {
-        this._customer = name;
+        this._orders.counterCustomerName = name;
     }
 
     get customer() {
-        return this._customer || COUNTER_DEFAULT_CUSTOMER;
+        return this._orders.counterCustomerName || COUNTER_DEFAULT_CUSTOMER;
     }
 
     set pickupTime(time) {
-        this._pickupTime = time;
+        this._orders.counterPickupTime = time;
     }
 
     get pickupTime() {
-        return this._pickupTime || COUNTER_DEFAULT_TIME;
+        return this._orders.counterPickupTime || COUNTER_DEFAULT_TIME;
+    }
+
+    get expirationTime() {
+        const nowRaw = moment();
+        const now = nowRaw.clone().tz('Europe/Paris');
+        const close = now.clone();
+        close.hour(this.closing.hour());
+        close.minute(this.closing.minute());
+        close.second(0);
+        const ttl = moment.duration(close.diff(now)).asSeconds();
+        console.log('Computed ttl:', ttl);
+        return ttl;
     }
 
     initializeMenu() {
@@ -79,11 +115,30 @@ class Counter {
 
     showInfo() {
         console.log('Phone number:', this.phone);
-        console.log('Counter opening:', this.opening);
-        console.log('Counter closing:', this.closing);
+        console.log('Counter opening:', this.opening.format('dddd HH:mm'));
+        console.log('Counter closing:', this.closing.format('dddd HH:mm'));
         console.log('Available sizes:', this._sizes);
-        console.log('Menu', this._menu);
     }
+
+    _addOrRemoveReminder() {
+        const nbOrders = this._generateOrderSummary().length;
+        if (nbOrders === 0) {
+            // no more reminder needed
+            if (this._timeout === -1) {
+                clearTimeout(this._timeout);
+                this._timeout = -1;
+            }
+            return;
+        }
+        const reminder = this.expirationTime - COUNTER_REMINDER_SECONDS;
+        if (reminder > 0) {
+            console.log('Create a reminder occuring in ' + reminder + 's');
+            this._timeout = setTimeout(() => {
+                this._botService.sendMessage('On va bientôt fermer, il va falloir penser à confirmer votre commande... :thinking_face:');
+            }, reminder);
+        }
+    }
+
 
     _generateOrderSummary() {
         const list = {};
@@ -114,24 +169,24 @@ class Counter {
     _addOrder(user, args) {
         const order = this._orders[user.id];
     	if (order) {
-    		return { content: SlackService.generateAlreadyOrder(order.order.type, order.order.size, order.order.price) };
+    		return { content: SlackService.generateAlreadyOrder(order.order.type, order.order.name, order.order.size, order.order.price) };
     	}
     	let sizeIdx;
-    	for (let s = 0; s < sizes.length; ++s) {
-    		if (args.indexOf(sizes[s]) !== -1)
+    	for (let s = 0; s < this._sizes.length; ++s) {
+    		if (args.indexOf(this._sizes[s]) !== -1)
     		{
     			sizeIdx = s;
     			break;
     		}
     	}
-    	if (size === undefined) {
+    	if (sizeIdx === undefined) {
             return { content: SlackService.generateOrderSizeNotFound() };
     	}
     	let type;
-    	for (let e = 0; e < menu.length; ++e) {
-    		if (args.indexOf(menu[e].code.toLowerCase()) !== -1)
+    	for (let e = 0; e < this._menu.length; ++e) {
+    		if (args.indexOf(this._menu[e].code.toLowerCase()) !== -1)
     		{
-    			type = menu[e];
+    			type = this._menu[e];
     			break;
     		}
     	}
@@ -144,12 +199,13 @@ class Counter {
     		order: {
     			name: type.name,
     			price: type.price[sizeIdx],
-    			size: sizes[sizeIdx],
+    			size: this._sizes[sizeIdx],
     			type: type.code
     		}
     	};
-        // TODO save to redis
-    	bot.sendMessage('Une commande vient d\'être ajoutée. Quelqu\'un d\'autre ? :smirk:');
+        this._redisService.save(this._orders, this.expirationTime);
+    	this._botService.sendMessage('Une commande vient d\'être ajoutée. Quelqu\'un d\'autre ? :smirk:');
+        this._addOrRemoveReminder();
         return { content: SlackService.generateOrderSaved() };
     }
 
@@ -160,8 +216,10 @@ class Counter {
     	}
     	this._orders[user.id] = undefined;
     	delete this._orders[user.id];
-    	bot.sendMessage('Une commande vient d\'être retirée. :(');
-    	return { content: SlackService.generateOrderDeleted() };
+        this._redisService.save(this._orders, this.expirationTime);
+    	this._botService.sendMessage('Une commande vient d\'être retirée. :(');
+        this._addOrRemoveReminder();
+        return { content: SlackService.generateOrderDeleted() };
     }
 
     _commitOrder(user) {
@@ -184,7 +242,8 @@ class Counter {
     _resetOrder() {
         console.log('Delete orders');
         this._orders = {};
-        // TODO save to redis
+        this._addOrRemoveReminder();
+        this._redisService.save(this._orders, this.expirationTime);
     }
 
     _getOrder() {
@@ -201,6 +260,9 @@ class Counter {
 
     parseCommand(user, args) {
         let response = {};
+        if (!this._ready) {
+            return SlackService.generateNotReady();
+        }
         if (!this.isOpen()) {
             return SlackService.generateCloseMessage(this.opening, this.closing);
         }
