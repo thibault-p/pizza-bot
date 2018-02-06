@@ -15,7 +15,7 @@ const SlackService = {
     	};
     },
 
-    generateSummary: function(orders) {
+    generateSummary: function(orders, customer, time) {
         let sum = 0;
         const content = [];
         console.log(orders);
@@ -35,11 +35,11 @@ const SlackService = {
         const l = content.length;
         if (l > 0) {
             const s = (l > 1)? 's': '';
-            text = `J'ai enregistré ${l} commande${s}. Total: ${sum}€`;
+            text = `J'ai enregistré ${l} commande${s}. Total : ${sum}€. Au nom de : ${customer}, pour : ${time}.`;
         }
         return {
             response_type: 'ephemeral',
-            text: `Résumé de la commande groupée :\n\t${text}`,
+            text: `Résumé de la commande groupée:\n\t${text}`,
             attachments: content,
             mrkdwn: true
         };

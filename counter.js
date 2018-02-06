@@ -202,7 +202,7 @@ class Counter {
     			size: this._sizes[sizeIdx],
     			type: type.code
     		}
-    	};
+    	};    }
         this._redisService.save(this._orders, this.expirationTime);
     	this._botService.sendMessage('Une commande vient d\'être ajoutée. Quelqu\'un d\'autre ? :smirk:');
         this._addOrRemoveReminder();
@@ -247,7 +247,11 @@ class Counter {
     }
 
     _getOrder() {
-        return { content: SlackService.generateSummary(this._orders) };
+        return { content: SlackService.generateSummary(
+            this._orders,
+            this._customer,
+            this._pickupTime
+        )};
     }
 
     _help(message) {
